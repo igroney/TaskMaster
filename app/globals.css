@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #faf9f5;
+    --surface: #ffffff;
+    --border: #e8e8e5;
+    --text: #141413;
+    --muted: #6b6b69;
+  }
+  .dark {
+    --bg: #0f0f1a;
+    --surface: #16213e;
+    --border: #2a2a4a;
+    --text: #e0e0f0;
+    --muted: #9090a8;
+  }
+  body {
+    @apply bg-[var(--bg)] text-[var(--text)] font-sans antialiased transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-xl transition-colors duration-200;
+  }
+  .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors text-sm;
+  }
+  .btn-ghost {
+    @apply bg-transparent hover:bg-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] font-medium px-3 py-1.5 rounded-lg transition-colors text-sm;
+  }
+  .input {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full transition-colors;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
