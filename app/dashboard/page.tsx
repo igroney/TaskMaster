@@ -52,7 +52,7 @@ export default function DashboardPage() {
       .select('org_id, role')
       .eq('user_id', user.id)
       .limit(1)
-      .single()
+      .single<{ org_id: string; role: string }>()
     if (memberError || !membership) { setLoading(false); return }
 
     // Get org
