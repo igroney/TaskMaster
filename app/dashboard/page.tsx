@@ -296,12 +296,12 @@ function NoOrgSetup() {
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const { data: org } = await supabase
       .from('organizations')
-      .insert({ name, slug, owner_id: user.id })
-      .select<'*', Organization>()
+      .insert({ name, slug, owner_id: user.id } as any)
+      .select()
       .single()
 
     if (org) {
-      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' as const })
+      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' } as any)
 
       // Create default categories
       await supabase.from('categories').insert([
@@ -309,7 +309,7 @@ function NoOrgSetup() {
         { org_id: org.id, name: 'Farfield Systems', color: '#0ea5e9', sort_order: 2 },
         { org_id: org.id, name: 'Punta Gorda Tide', color: '#f59e0b', sort_order: 3 },
         { org_id: org.id, name: 'Personal',         color: '#10b981', sort_order: 4 },
-      ])
+      ] as any)
       window.location.reload()
     }
     setSaving(false)
