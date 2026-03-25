@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Task, Category, Organization } from '@/lib/types'
 import { TaskCard } from '@/components/TaskCard'
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState<string>('active')
   const [showAdd, setShowAdd] = useState(false)
   const [showDone, setShowDone] = useState(false)
+  const router = useRouter()
   const supabase = createClient()
 
   // Dark mode persistence
@@ -44,7 +46,7 @@ export default function DashboardPage() {
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { router.push('/login'); return }
 
     // Get org membership
     const { data: membership, error: memberError } = await supabase
@@ -79,7 +81,7 @@ export default function DashboardPage() {
       .order('created_at', { ascending: false })
     setTasks((taskData ?? []) as TaskWithCategory[])
     setLoading(false)
-  }, [supabase])
+  }, [router, supabase])
 
   useEffect(() => {
     loadData()
