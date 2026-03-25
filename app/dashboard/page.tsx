@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState<string>('active')
   const [showAdd, setShowAdd] = useState(false)
   const [showDone, setShowDone] = useState(false)
+  const [showDismissed, setShowDismissed] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -95,10 +96,13 @@ export default function DashboardPage() {
     return () => { supabase.removeChannel(channel) }
   }, [loadData, supabase])
 
-  // Filtering
+  // Filtering — always exclude dismissed from normal views
+  const activeTasks = tasks.filter(t => t.status !== 'dismissed')
+  const dismissedTasks = tasks.filter(t => t.status === 'dismissed')
+
   const visibleTasks = filter === 'all'
-    ? tasks
-    : tasks.filter(t => t.category?.name === filter)
+    ? activeTasks
+    : activeTasks.filter(t => t.category?.name === filter)
 
   const tasksByStatus: GroupedTasks = {}
   for (const s of STATUS_SECTIONS) {
@@ -106,9 +110,9 @@ export default function DashboardPage() {
   }
 
   // Stats
-  const activeCount = tasks.filter(t => t.status === 'active').length
-  const urgentCount = tasks.filter(t => t.status === 'active' && (t.priority === 'urgent' || isDueSoon(t.due_date))).length
-  const doneCount = tasks.filter(t => t.status === 'done').length
+  const activeCount = activeTasks.filter(t => t.status === 'active').length
+  const urgentCount = activeTasks.filter(t => t.status === 'active' && (t.priority === 'urgent' || isDueSoon(t.due_date))).length
+  const doneCount = activeTasks.filter(t => t.status === 'done').length
 
   const today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })
 
@@ -185,10 +189,10 @@ export default function DashboardPage() {
                 : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:border-indigo-400'
             }`}
           >
-            All ({tasks.filter(t => t.status === 'active').length})
+            All ({activeTasks.filter(t => t.status === 'active').length})
           </button>
           {categories.map(cat => {
-            const count = tasks.filter(t => t.status === 'active' && t.category?.id === cat.id).length
+            const count = activeTasks.filter(t => t.status === 'active' && t.category?.id === cat.id).length
             const isActive = filter === cat.name
             return (
               <button
@@ -263,6 +267,26 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Dismissed section toggle */}
+        {dismissedTasks.length > 0 && (
+          <div className="mt-4">
+            <button
+              onClick={() => setShowDismissed(!showDismissed)}
+              className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors font-medium"
+            >
+              <span className={`transition-transform ${showDismissed ? 'rotate-90' : ''}`}>▶</span>
+              Dismissed ({dismissedTasks.length})
+            </button>
+            {showDismissed && (
+              <div className="mt-3">
+                {dismissedTasks.map(task => (
+                  <TaskCard key={task.id} task={task} onUpdate={loadData} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {showAdd && org && (

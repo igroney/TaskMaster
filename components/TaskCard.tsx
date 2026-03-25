@@ -30,6 +30,7 @@ function formatDate(dateStr: string | null) {
 
 export function TaskCard({ task, onUpdate }: Props) {
   const [completing, setCompleting] = useState(false)
+  const [dismissing, setDismissing] = useState(false)
   const supabase = createClient()
   const due = formatDate(task.due_date)
   const priority = PRIORITY_CONFIG[task.priority]
@@ -45,17 +46,34 @@ export function TaskCard({ task, onUpdate }: Props) {
     setCompleting(false)
   }
 
+  async function dismiss() {
+    setDismissing(true)
+    const sb = supabase.from('tasks') as any
+    await sb.update({ status: 'dismissed' }).eq('id', task.id)
+    onUpdate()
+    setDismissing(false)
+  }
+
+  async function undismiss() {
+    setDismissing(true)
+    const sb = supabase.from('tasks') as any
+    await sb.update({ status: 'active' }).eq('id', task.id)
+    onUpdate()
+    setDismissing(false)
+  }
+
   const isDone = task.status === 'done'
+  const isDismissed = task.status === 'dismissed'
 
   return (
     <div
-      className={`card p-4 mb-2 flex gap-3 items-start group transition-opacity ${isDone ? 'opacity-60' : ''}`}
+      className={`card p-4 mb-2 flex gap-3 items-start group transition-opacity ${isDone || isDismissed ? 'opacity-60' : ''}`}
       style={{ borderLeft: `4px solid ${isUrgent ? '#ef4444' : dotColor}` }}
     >
       {/* Checkbox */}
       <button
         onClick={toggleDone}
-        disabled={completing}
+        disabled={completing || isDismissed}
         className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
           isDone
             ? 'bg-green-500 border-green-500 text-white'
@@ -69,7 +87,7 @@ export function TaskCard({ task, onUpdate }: Props) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <span className={`font-semibold text-sm ${isDone ? 'line-through text-[var(--muted)]' : ''}`}>
+          <span className={`font-semibold text-sm ${isDone || isDismissed ? 'line-through text-[var(--muted)]' : ''}`}>
             {task.title}
           </span>
           {priority.label && (
@@ -90,6 +108,27 @@ export function TaskCard({ task, onUpdate }: Props) {
           <CategoryBadge category={task.category} />
         </div>
       </div>
+
+      {/* Dismiss / Undismiss button */}
+      {isDismissed ? (
+        <button
+          onClick={undismiss}
+          disabled={dismissing}
+          className="flex-shrink-0 text-xs text-[var(--muted)] hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100 px-1.5 py-0.5 rounded"
+          title="Restore task"
+        >
+          ↩
+        </button>
+      ) : (
+        <button
+          onClick={dismiss}
+          disabled={dismissing}
+          className="flex-shrink-0 text-xs text-[var(--muted)] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-950"
+          title="Dismiss task"
+        >
+          ✕
+        </button>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-export type TaskStatus = 'active' | 'waiting' | 'someday' | 'done'
+export type TaskStatus = 'active' | 'waiting' | 'someday' | 'done' | 'dismissed'
 export type TaskPriority = 'urgent' | 'high' | 'normal' | 'low'
 export type OrgRole = 'owner' | 'admin' | 'member'
 
