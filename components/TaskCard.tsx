@@ -41,7 +41,7 @@ export function TaskCard({ task, onUpdate }: Props) {
     const newStatus = task.status === 'done' ? 'active' : 'done'
     await supabase
       .from('tasks')
-      .update({ status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null })
+      .update({ status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null } as any)
       .eq('id', task.id)
     onUpdate()
     setCompleting(false)

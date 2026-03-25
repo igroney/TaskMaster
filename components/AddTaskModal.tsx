@@ -35,7 +35,7 @@ export function AddTaskModal({ orgId, categories, onClose, onCreated }: Props) {
       status,
       due_date: dueDate || null,
       created_by: user?.id,
-    })
+    } as any)
     setSaving(false)
     onCreated()
     onClose()
