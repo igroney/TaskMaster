@@ -39,10 +39,11 @@ export function TaskCard({ task, onUpdate }: Props) {
   async function toggleDone() {
     setCompleting(true)
     const newStatus = task.status === 'done' ? 'active' : 'done'
-    await (supabase
+    // @ts-ignore - Supabase types not fully configured
+    await supabase
       .from('tasks')
-      .update({ status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null } as any)
-      .eq('id', task.id) as any)
+      .update({ status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null })
+      .eq('id', task.id)
     onUpdate()
     setCompleting(false)
   }
