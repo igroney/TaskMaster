@@ -1,59 +1,31 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export const runtime = 'nodejs'
-
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  const response = NextResponse.next()
 
-  // Check if environment variables are set
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase environment variables')
-    return supabaseResponse
+  // Check if user has auth cookie
+  const authToken = request.cookies.get('sb-access-token') ||
+                    request.cookies.get('sb-ohuezxanactnsamrepva-auth-token')
+
+  const isPublic = request.nextUrl.pathname.startsWith('/login') ||
+                   request.nextUrl.pathname.startsWith('/api') ||
+                   request.nextUrl.pathname === '/'
+
+  // Redirect to login if no auth token and not on public route
+  if (!authToken && !isPublic) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
-  try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll() },
-          setAll(cookiesToSet: any) {
-            cookiesToSet.forEach(({ name, value }: any) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({ request })
-            cookiesToSet.forEach(({ name, value, options }: any) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
-
-    const { data: { user } } = await supabase.auth.getUser()
-
-    // Redirect unauthenticated users to login (except /login and /api routes)
-    const isPublic = request.nextUrl.pathname.startsWith('/login') ||
-                     request.nextUrl.pathname.startsWith('/api')
-
-    if (!user && !isPublic) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-
-    // Redirect logged-in users away from login page
-    if (user && request.nextUrl.pathname === '/login') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
-
-    return supabaseResponse
-  } catch (error) {
-    console.error('Middleware error:', error)
-    return supabaseResponse
+  // Redirect to dashboard if has auth token and on login page
+  if (authToken && request.nextUrl.pathname === '/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
   }
+
+  return response
 }
 
 export const config = {
