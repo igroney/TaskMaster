@@ -51,7 +51,7 @@ export interface Task {
   sort_order: number
   created_at: string
   updated_at: string
-  category?: Category
+  category?: Category | null
   assignee?: Profile
 }
 
