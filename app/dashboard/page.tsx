@@ -47,13 +47,13 @@ export default function DashboardPage() {
     if (!user) return
 
     // Get org membership
-    const { data: membership } = await supabase
+    const { data: membership, error: memberError } = await supabase
       .from('org_members')
       .select('org_id, role')
       .eq('user_id', user.id)
       .limit(1)
       .single()
-    if (!membership) { setLoading(false); return }
+    if (memberError || !membership) { setLoading(false); return }
 
     // Get org
     const { data: orgData } = await supabase
