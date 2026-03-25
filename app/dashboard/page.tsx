@@ -298,7 +298,7 @@ function NoOrgSetup() {
       .from('organizations')
       .insert({ name, slug, owner_id: user.id } as any)
       .select()
-      .single()
+      .single<Organization>()
 
     if (org) {
       await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' } as any)
