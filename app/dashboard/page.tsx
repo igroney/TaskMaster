@@ -297,11 +297,11 @@ function NoOrgSetup() {
     const { data: org } = await supabase
       .from('organizations')
       .insert({ name, slug, owner_id: user.id })
-      .select()
+      .select<'*', Organization>()
       .single()
 
     if (org) {
-      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' })
+      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' as const })
 
       // Create default categories
       await supabase.from('categories').insert([
