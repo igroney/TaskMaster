@@ -294,22 +294,46 @@ function NoOrgSetup() {
     if (!user) return
 
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    const { data: org } = await supabase
+    const { data: org, error: orgError } = await supabase
       .from('organizations')
       .insert({ name, slug, owner_id: user.id } as any)
       .select()
       .single<Organization>()
 
+    if (orgError) {
+      console.error('Org creation error:', orgError)
+      alert(`Failed to create organization: ${orgError.message}`)
+      setSaving(false)
+      return
+    }
+
     if (org) {
-      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'owner' } as any)
+      const { error: memberError } = await supabase
+        .from('org_members')
+        .insert({ org_id: org.id, user_id: user.id, role: 'owner' } as any)
+
+      if (memberError) {
+        console.error('Member creation error:', memberError)
+        alert(`Failed to add member: ${memberError.message}`)
+        setSaving(false)
+        return
+      }
 
       // Create default categories
-      await supabase.from('categories').insert([
+      const { error: catError } = await supabase.from('categories').insert([
         { org_id: org.id, name: 'Abanteare LLC',    color: '#6366f1', sort_order: 1 },
         { org_id: org.id, name: 'Farfield Systems', color: '#0ea5e9', sort_order: 2 },
         { org_id: org.id, name: 'Punta Gorda Tide', color: '#f59e0b', sort_order: 3 },
         { org_id: org.id, name: 'Personal',         color: '#10b981', sort_order: 4 },
       ] as any)
+
+      if (catError) {
+        console.error('Categories creation error:', catError)
+        alert(`Failed to create categories: ${catError.message}`)
+        setSaving(false)
+        return
+      }
+
       window.location.reload()
     }
     setSaving(false)
